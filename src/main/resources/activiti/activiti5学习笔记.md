@@ -195,7 +195,7 @@ public void createTable() {
 
 运行后可以看到数据库中出现了25张表：
 
-![5.22.0_表](E:\SOURCES\JAVA\开发工具\文档\activiti\5.22.0_表.PNG)
+![5.22.0_表](5.22.0_表.PNG)
 
 
  在Activiti中，在创建核心的流程引擎对象时会自动建表。如果程序正常执行，mysql会自动建库，然后创建25张表。
@@ -365,54 +365,81 @@ public interface ProcessInstance extends Execution {
 
 **当流程按照规则只执行一次的时候，那么流程实例就是执行对象。**
 
-# ***\*6\*\*：\*\*\*\*HelloWorld\*\*\*\*程序（模拟流程的执行）\*\**\***
+# 5、HelloWorld程序（模拟流程的执行）
 
+### 5.1、流程图
 
+![申请假期](../static/Helloworld.png)
 
-### **6.1\**：流程图：\****
+### 5.2、部署流程定义
 
-![img](https://img-blog.csdn.net/20170303174242913)
-
-
-
-### **6.2\**：部署流程定义\****
-
-
-
-
-
-![img](https://img-blog.csdn.net/20170303174540729)
-
-
+```java
+/**
+ * 发布流程
+ */
+@Test
+public void testDeploy() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    Deployment deployment = processEngine.getRepositoryService()
+        .createDeployment()
+        .addClasspathResource("static/Helloworld.bpmn")
+        .addClasspathResource("static/Helloworld.png")
+        .deploy();
+    System.err.println(deployment.getId());
+    System.err.println(deployment.getName());
+}
+```
 
 这里使用RepositoryService部署流程定义
 
 addClasspathResource表示从类路径下加载资源文件，一次只能加载一个文件
 
+### 5.3、启动流程实例
 
+```java
+/**
+ * 启动流程
+ */
+@Test
+public void testProcess() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+        // .startProcessInstanceByKey("myProcess_1");// 使用流程定义的key启动流程，系统会默认使用最新版本（version）启动
+        .startProcessInstanceById("myProcess_1:1:4");
+    System.err.println(processInstance.getId());
+}
+```
 
-### **6.3\**：启动流程实例\****
+### 5.4、查看我的个人任务
 
-![img](https://img-blog.csdn.net/20170303174647106)
+```java
+/**
+ * 查询个人任务
+ */
+@Test
+public void testTask() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    List<Task> taskList = processEngine.getTaskService()
+        .createTaskQuery()
+        // .taskAssignee("")  执行人
+        .list();
+    taskList.forEach(System.err::println);
+}
+```
 
+### 5.5、完成我的个人任务
 
-
-### **6.4\**：查看我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303174720013)
-
-
-
-这里使用**TaskService**完成任务的查询
-
-### **6.5\**：完成我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303174751451)
-
-**
-**
-
-
+```java
+/**
+ * 完成任务
+ */
+@Test
+public void testCompletedTask() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    processEngine.getTaskService()
+        .complete("7502");
+}
+```
 
 # **7\**：管理流程定义\****
 
