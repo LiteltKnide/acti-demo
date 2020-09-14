@@ -162,7 +162,7 @@ http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 http://activiti.org/download.html
 
-4) Eclipse3.7或者MyEclipse8.6也可以到相应的网站上获得下载。
+4) Eclipse或者MyEclipse也可以到相应的网站上获得下载。本人用的是IDEA
 
 ### 3.3、准备Activiti5开发环境
 
@@ -255,6 +255,20 @@ createProcessEngineConfigurationFromResource的参数值为我们添加的配置
 ##### 3.3.3.2、log4j.properties日志配置文件
 
 把两个文件放入resource目录下即可。
+
+#### 3.3.4、IDEA的activiti插件--actiBPM
+
+IDEA的activiti插件安装网上有很多教程，这里就简单截几张图
+
+![IDEA配置activities插件](../activiti/配置插件actiBPM.png)
+
+安装好了重启IDEA就可以新建bpmn文件了
+
+![新建Bpmn文件](../activiti/新建Bpmn文件.png)
+
+复制bpmn粘贴到相同目录下，修改文件后缀为xml；右键xml文件导出png文件到相同目录
+
+![导出png文件](../activiti/导出png文件.png)
 
 ## 4、核心API
 
@@ -943,9 +957,9 @@ public void testProcessStatus() {
 
  act_hi_taskinst：已经执行完的历史任务信息
 
-## ***\*9\*\*：流程变量\*\**\***
+## 8、流程变量
 
-### **9.1\**：流程图\****
+### 8.1、流程图
 
 ![img](https://img-blog.csdn.net/20170303180917382)
 
