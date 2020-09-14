@@ -128,7 +128,7 @@ Activiti核心配置文件，配置流程引擎创建工具的基本参数和数
 
 日志的配置文件，Activiti操作数据库的时候，整合的日志文件
 
-# 3、准备环境
+## 3、准备环境
 
 ### 3.1、activiti5软件环境
 
@@ -248,7 +248,7 @@ createProcessEngineConfigurationFromResource的参数值为我们添加的配置
 
 把两个文件放入resource目录下即可。
 
-# 4、核心API
+## 4、核心API
 
 ### 4.1、ProcessEngine
 
@@ -365,7 +365,7 @@ public interface ProcessInstance extends Execution {
 
 **当流程按照规则只执行一次的时候，那么流程实例就是执行对象。**
 
-# 5、HelloWorld程序（模拟流程的执行）
+## 5、HelloWorld程序（模拟流程的执行）
 
 ### 5.1、流程图
 
@@ -441,23 +441,98 @@ public void testCompletedTask() {
 }
 ```
 
-# **7\**：管理流程定义\****
+## 6、管理流程定义
 
-### 7.1**：设计流程定义文档**
+### 6.1、设计流程定义文档
 
-#### 7.1.1**：流程图 **
+#### 6.1.1、流程图 
 
-![img](https://img-blog.csdn.net/20170303175219812)
-
-
-
-#### 7.1.2**：****bpmn****文件**
-
-  BPMN 2.0根节点是definitions节点。 这个元素中，可以定义多个流程定义（不过我们建议每个文件只包含一个流程定义， 可以简化开发过程中的维护难度）。 一个空的流程定义看起来像下面这样。注意，definitions元素 最少也要包含xmlns 和 targetNamespace的声明。 targetNamespace可以是任意值，它用来对流程实例进行分类。
-
-![img](https://img-blog.csdn.net/20170303175300015)
+![img](..\static\Vication.png)
 
 
+
+#### 6.1.2、bpmn文件
+
+BPMN 2.0根节点是definitions节点。 这个元素中，可以定义多个流程定义（不过我们建议每个文件只包含一个流程定义， 可以简化开发过程中的维护难度）。 一个空的流程定义看起来像下面这样。注意，definitions元素 最少也要包含xmlns 和 targetNamespace的声明。 targetNamespace可以是任意值，它用来对流程实例进行分类。
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:tns="http://www.activiti.org/test" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" expressionLanguage="http://www.w3.org/1999/XPath" id="m1600045424116" name="" targetNamespace="http://www.activiti.org/test" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <process id="vacation" isClosed="false" isExecutable="true" name="vacation" processType="None">
+    <startEvent id="StartEvent" name="Start"/>
+    <endEvent id="EndEvent" name="End"/>
+    <userTask activiti:assignee="张三" activiti:exclusive="true" id="UserTask1" name="提交假期申请"/>
+    <userTask activiti:assignee="李四" activiti:exclusive="true" id="UserTask2" name="审批【部门经理】"/>
+    <userTask activiti:assignee="王五" activiti:exclusive="true" id="UserTask3" name="审批【总经理】"/>
+    <sequenceFlow id="_7" name="flow1" sourceRef="StartEvent" targetRef="UserTask1"/>
+    <sequenceFlow id="_8" name="flow2" sourceRef="UserTask1" targetRef="UserTask2"/>
+    <sequenceFlow id="_9" name="flow3" sourceRef="UserTask2" targetRef="UserTask3"/>
+    <sequenceFlow id="_10" sourceRef="UserTask3" targetRef="EndEvent"/>
+  </process>
+  <bpmndi:BPMNDiagram documentation="background=#3C3F41;count=1;horizontalcount=1;orientation=0;width=842.4;height=1195.2;imageableWidth=832.4;imageableHeight=1185.2;imageableX=5.0;imageableY=5.0" id="Diagram-_1" name="New Diagram">
+    <bpmndi:BPMNPlane bpmnElement="vacation">
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="Shape-StartEvent">
+        <omgdc:Bounds height="32.0" width="32.0" x="250.0" y="35.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="Shape-EndEvent">
+        <omgdc:Bounds height="32.0" width="32.0" x="265.0" y="580.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="UserTask1" id="Shape-UserTask1">
+        <omgdc:Bounds height="55.0" width="85.0" x="235.0" y="165.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="UserTask2" id="Shape-UserTask2">
+        <omgdc:Bounds height="55.0" width="85.0" x="240.0" y="305.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="UserTask3" id="Shape-UserTask3">
+        <omgdc:Bounds height="55.0" width="85.0" x="240.0" y="455.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_7" id="BPMNEdge__7" sourceElement="StartEvent" targetElement="UserTask1">
+        <omgdi:waypoint x="266.0" y="67.0"/>
+        <omgdi:waypoint x="266.0" y="165.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_8" id="BPMNEdge__8" sourceElement="UserTask1" targetElement="UserTask2">
+        <omgdi:waypoint x="280.0" y="220.0"/>
+        <omgdi:waypoint x="280.0" y="305.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_9" id="BPMNEdge__9" sourceElement="UserTask2" targetElement="UserTask3">
+        <omgdi:waypoint x="282.5" y="360.0"/>
+        <omgdi:waypoint x="282.5" y="455.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_10" id="BPMNEdge__10" sourceElement="UserTask3" targetElement="EndEvent">
+        <omgdi:waypoint x="281.0" y="510.0"/>
+        <omgdi:waypoint x="281.0" y="580.0"/>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
+```
 
 说明：流程定义文档有两部分组成：
 
@@ -469,19 +544,25 @@ public void testCompletedTask() {
 
 在系统里需要展示流程的进展图片，图片是给用户看的。
 
-### 7.2**：部署流程定义（****classpath****路径加载文件）**
+### 6.2、部署流程定义（classpath路径加载文件）
 
-![img](https://img-blog.csdn.net/20170303175345960)
-
-
+```java
+@Test
+public void testDeploy() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    Deployment deployment = repositoryService.createDeployment()
+        .name("请假申请流程")// 添加部署显示名称
+        .addClasspathResource("static/Vication.bpmn")// 添加流程定义的规则文件
+        .addClasspathResource("static/Vication.png")// 添加流程定义的图片文件
+        .deploy();
+    System.err.println(deployment.getId());
+}
+```
 
 说明：
 
 1) 先获取流程引擎对象：在创建时会自动加载classpath下的activiti.cfg.xml
-
-![img](https://img-blog.csdn.net/20170303175419844)
-
-
 
 2) 首先获得默认的流程引擎，通过流程引擎获取了一个RepositoryService对象（仓库对象）
 
@@ -507,47 +588,67 @@ c) **act_ge_bytearray（资源文件表）**
 
 存储流程定义相关的部署信息。即流程定义文档的存放地。每部署一次就会增加两条记录，一条是关于bpmn规则文件的，一条是图片的（如果部署时只指定了bpmn一个文件，activiti会在部署时解析bpmn文件内容自动生成流程图）。两个文件不是很大，都是以二进制形式存储在数据库中。
 
+### 6.3、部署流程定义（zip格式文件）
 
+```java
+@Test
+public void testDeploy_2() {
+    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("static/Vacation.zip");
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    Deployment deployment = processEngine.getRepositoryService()
+        .createDeployment()
+        .name("请假流程")
+        .addZipInputStream(zipInputStream)
+        .deploy();
+    System.err.println(deployment.getId());
+}
+```
 
-### **7.3\**：部署流程定义（\**\**zip\**\**格式文件）\****
+将bpmn文件和png文件压缩成zip格式的文件，使用zip的输入流用作部署流程定义
 
-![img](https://img-blog.csdn.net/20170303175512860)
-
-
-
-
-
-将
-
-![img](https://img-blog.csdn.net/20170303175536432)
-
-压缩成zip格式的文件，使用zip的输入流用作部署流程定义
-
-
-
-### 7.4**：查看流程定义**
-
-
+### 6.4、查看流程定义
 
 查询流程定义的信息
 
-![img](https://img-blog.csdn.net/20170303175613454)
+字段：
 
+1. id: {key}:{version}:{随机数}
+2. key: 对应流程文件process节点的name属性
+3. name: 对应流程文件process节点的id属性
+4. version: 发布时自动生成。默认从1开始； 相同key的流程再次发布，version版本在前最高版本上加1.
 
-
-
+```java
+@Test
+public void testProcessDefinition() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    List<ProcessDefinition> processDefinitions = processEngine.getRepositoryService()
+        .createProcessDefinitionQuery()
+        // 添加查询条件
+        // .processDefinitionId("")
+        // .processDefinitionKey("")
+        // .processDefinitionName("")
+        // 排序
+        .orderByProcessDefinitionId().asc()
+        // 结果集
+        // .listPage(1, 10);
+        .list();
+    processDefinitions.forEach(System.err::println);
+}
+```
 
 结果：
 
-![img](https://img-blog.csdn.net/20170303175651938)
-
-
+```java
+ProcessDefinitionEntity[vacation:1:4]
+```
 
 再部署一次运行结果为：
 
-![img](https://img-blog.csdn.net/20170303175718454)
-
-
+```java
+ProcessDefinitionEntity[vacation:2:2504]
+ProcessDefinitionEntity[vacation:1:4]
+```
 
 可以看到流程定义的key值相同的情况下，版本是从1开始逐次升级的
 
@@ -565,9 +666,9 @@ c) **act_ge_bytearray（资源文件表）**
 
 Key和Name的值为：bpmn文件process节点的id和name的属性值
 
-![img](https://img-blog.csdn.net/20170303175748454)
-
-
+```xml
+<process id="vacation" isClosed="false" isExecutable="true" name="vacation" processType="None">
+```
 
 5) key属性被用来区别不同的流程定义。
 
@@ -579,13 +680,21 @@ Key和Name的值为：bpmn文件process节点的id和name的属性值
 
   规则act_ge_property表生成
 
-### 7.5**：删除流程定义**
+### 6.5、删除流程定义
 
 删除部署到activiti中的流程定义。
 
-![img](https://img-blog.csdn.net/20170303175840561)
-
-
+```java
+@Test
+public void testDeleteDeploy() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    processEngine.getRepositoryService()
+        // 普通删除： 只会删除流程部署和定义  如果有正在执行的流程，会抛异常
+        // .deleteDeployment("1");
+        // 联级删除  会删除跟单签流程相关的所有信息，也包括历史信息
+        .deleteDeployment("1", true);
+}
+```
 
 说明：
 
@@ -593,13 +702,37 @@ Key和Name的值为：bpmn文件process节点的id和name的属性值
 
 2) 如果该流程定义下没有正在运行的流程，则可以用普通删除。如果是有关联的信息，用级联删除。项目开发中使用级联删除的情况比较多，删除操作一般只开放给超级管理员使用。
 
-### 7.6**：获取流程定义文档的资源（查看流程图附件）**
+### 6.6、获取流程定义文档的资源（查看流程图附件）
 
 查询出流程定义文档。主要查的是图片，用于显示流程用。
 
-![img](https://img-blog.csdn.net/20170303175914940)
+```java
+@Test
+public void testViewImage() throws Exception {
+    String deploymentId = "2501";
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    List<String> resourceNames = processEngine.getRepositoryService()
+        .getDeploymentResourceNames(deploymentId);
+    resourceNames.forEach(resourceName -> {
+        System.err.println(resourceName);
+        File file = new File("e:/" + resourceName);
+        InputStream inputStream = processEngine.getRepositoryService()
+            .getResourceAsStream(deploymentId, resourceName);
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            byte[] bytes = new byte[1024];
+            while (inputStream.read(bytes) > 0) {
+                fileOutputStream.write(bytes);
+            }
+            fileOutputStream.flush();
+            inputStream.close();
+            fileOutputStream.close();
+        } catch (Exception e) {
 
-
+        }
+    });
+}
+```
 
 说明：
 
@@ -611,25 +744,7 @@ Key和Name的值为：bpmn文件process节点的id和name的属性值
 
 4) 使用repositoryService的getResourceAsStream方法传入部署ID和资源图片名称可以获取部署下指定名称文件的输入流
 
-5) 最后的有关IO流的操作，使用FileUtils工具的copyInputStreamToFile方法完成流程流程到文件的拷贝，将资源文件以流的形式输出到指定文件夹下
-
-### **7.7\**：附加功能：查询最新版本的流程定义\****
-
-![img](https://img-blog.csdn.net/20170303175949874)
-
-
-
-### **7.8\**：附加功能：删除流程定义（删除\**\**key\**\**相同的所有不同版本的流程定义）\****
-
-![img](https://img-blog.csdn.net/20170303180010316)
-
-
-
-
-
-### 7.9**：总结**
-
-
+### 6.9、总结
 
 **Deployment  部署对象**
 
@@ -644,8 +759,6 @@ Key和Name的值为：bpmn文件process节点的id和name的属性值
  act_ge_bytearray：资源文件表
 
  act_ge_property：主键生成策略表
-
- 
 
 **ProcessDefinition流程定义**
 
