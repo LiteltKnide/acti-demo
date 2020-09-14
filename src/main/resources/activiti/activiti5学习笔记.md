@@ -28,6 +28,8 @@ Activiti数据库支持：
 
 Activiti的后台是有数据库的支持，所有的表都以ACT_开头。 第二部分是表示表的用途的两个字母标识。 用途也和服务的API对应。
 
+ACT_EVT_LOG: 事件日志表
+
 ACT_RE_*: 'RE'表示repository。 这个前缀的表包含了流程定义和流程静态资源 （图片，规则，等等）。
 
 ACT_RU_*: 'RU'表示runtime。 这些运行时的表，包含流程实例，任务，变量，异步任务，等运行中的数据。 Activiti只在流程实例执行过程中保存这些数据， 在流程结束时就会删除这些记录。 这样运行时表可以一直很小速度很快。
@@ -58,6 +60,10 @@ ACT_GE_*: 通用数据， 用于不同场景下，如存放资源文件。
 
 4) act_ru_variable 运行时流程变量数据表
 
+5) act_ru_event_subscr   监听信息表（几乎用不上）
+
+6) act_ru_job  运行时定时任务数据表（几乎用不上）
+
 #### 2.3.3、历史数据库表
 
 1) act_hi_actinst 历史节点表
@@ -85,6 +91,8 @@ ACT_GE_*: 通用数据， 用于不同场景下，如存放资源文件。
 3) act_id_membership 用户与用户组对应信息表
 
 4) act_id_user 用户信息表
+
+5) act_procdef_info   用户扩展信息表
 
 这四张表很常见，基本的组织机构管理，关于用户认证方面建议还是自己开发一套，组件自带的功能太简单，使用中有很多需求难以满足
 
@@ -447,7 +455,7 @@ public void testCompletedTask() {
 
 #### 6.1.1、流程图 
 
-![img](..\static\Vication.png)
+![img](..\static\Vacation.png)
 
 
 
@@ -744,7 +752,7 @@ public void testViewImage() throws Exception {
 
 4) 使用repositoryService的getResourceAsStream方法传入部署ID和资源图片名称可以获取部署下指定名称文件的输入流
 
-### 6.9、总结
+### 6.7、总结
 
 **Deployment  部署对象**
 
@@ -764,39 +772,55 @@ public void testViewImage() throws Exception {
 
 1、解析.bpmn后得到的流程定义规则的信息，工作流系统就是按照流程定义的规则执行的。
 
-## ***\*8\*\*：流程实例、任务的执行\*\**\***
+## 7、流程实例、任务的执行
 
-### **8.1\**：流程图\****
+### 7.1、流程图
 
-![img](https://img-blog.csdn.net/20170303180050738)
-
-
-
-### **8.2\**：部署流程定义\****
-
-![img](https://img-blog.csdn.net/20170303180114754)
+![img](..\static\Vacation.png)
 
 
 
+### 7.2、部署流程定义
 
+同 6.2/6.3
 
-### **8.3\**：启动流程实例\****
+### 7.3、启动流程实例
 
-![img](https://img-blog.csdn.net/20170303180135129)
-
-
-
-
+```java
+@Test
+public void testStartProcess() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+            // .startProcessInstanceByKey("vacation");   使用流程key启动流程 默认使用最高版本流程
+            .startProcessInstanceById("vacation:2:5004");
+    System.err.println(processInstance.getId());
+    System.err.println(processInstance.getDeploymentId());
+    System.err.println(processInstance.getProcessDefinitionId());
+    System.err.println(processInstance.getActivityId());
+}
+```
 
 说明：
 
 1) 操作数据库的act_ru_execution表,如果是用户任务节点，同时也会在act_ru_task添加一条记录
 
-### **8.4\**：查询我的个人任务\****
+2) 影响表：act_hi_actinst；act_hi_identitylink；act_hi_procinst；act_hi_taskinst；act_ru_execution；act_ru_identitylink；act_ru_task。
 
-![img](https://img-blog.csdn.net/20170303180215971)
+### 7.4、查询我的个人任务
 
-
+```java
+@Test
+public void testTaskList() {
+    String assginee = "张三";
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    List<Task> taskList = processEngine.getTaskService()
+        .createTaskQuery()
+        .taskAssignee(assginee)// 任务办理人
+        .orderByTaskCreateTime().asc() // 任务创建时间正序
+        .list();
+    taskList.forEach(System.err::println);
+}
+```
 
 说明：
 
@@ -810,15 +834,13 @@ public void testViewImage() throws Exception {
 
 5) 任务ID、名称、办理人、创建时间可以从act_ru_task表中查到。
 
-6) Execution与ProcessInstance见5.6和5.7章节的介绍。在这种情况下，ProcessInstance相当于Execution
+6) Execution与ProcessInstance见4.7和4.8章节的介绍。在这种情况下，ProcessInstance相当于Execution
 
 7) 如果assignee属性为部门经理，结果为空。因为现在流程只到了”填写请假申请”阶段，后面的任务还没有执行，即在数据库中没有部门经理可以办理的任务，所以查询不到。
 
 8) 一个Task节点和Execution节点是1对1的情况，在task对象中使用Execution_来表示他们之间的关系
 
 9) 任务ID在数据库表act_ru_task中对应“ID_”列
-
- 
 
 附加：
 
@@ -830,11 +852,16 @@ public void testViewImage() throws Exception {
 
 先知道个人任务的查询和办理，组任务的操作后面讲
 
-### **8.5\**：办理任务\****
+### 7.5、办理任务
 
-![img](https://img-blog.csdn.net/20170303180250628)
-
-
+```java
+@Test
+public void testCompleted() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    processEngine.getTaskService()
+        .complete("7504");// 任务id
+}
+```
 
 说明：
 
@@ -850,13 +877,25 @@ public void testViewImage() throws Exception {
 
 6) 重复第3和4步直到流程执行完。
 
-### **8.6\**：查询流程状态（判断流程正在执行，还是结束）\****
+### 7.6、查询流程状态（判断流程正在执行，还是结束）
 
-![img](https://img-blog.csdn.net/20170303180331207)
+```java
+@Test
+public void testProcessStatus() {
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+        .createProcessInstanceQuery()
+        .processDefinitionId("vacation:2:5004")
+        .singleResult();
+    if (processInstance != null) {
+        System.err.println("流程正在执行：" + processInstance.getActivityId());
+    } else {
+        System.err.println("流程已结束!");
+    }
+}
+```
 
-
-
-在流程执行的过程中，创建的流程实例ID在整个过程中都不会变，当流程结束后，流程实例将会在正在执行的执行对象表中（act_ru_execution）被删除
+在流程执行过程中，创建的流程实例ID在整个过程中都不会变，当流程结束后，流程实例将会在正在执行的执行对象表中（act_ru_execution）被删除
 
 说明：
 
@@ -868,23 +907,7 @@ public void testViewImage() throws Exception {
 
 4) 判断指定ID的实例是否存在，如果结果为空，则代表流程结束，实例在正在执行的执行对象表中已被删除，转换成历史数据。
 
-### **8.7\**：附加功能：\*******\*查询历史任务\******（后面讲）**
-
-![img](https://img-blog.csdn.net/20170303180402567)
-
-
-
-### **8.8\**：附加功能：\*******\*查询历史流程实例\******（后面讲）**
-
-![img](https://img-blog.csdn.net/20170303180437022)
-
-
-
-
-
-### 8.9**：总结**
-
-
+### 7.7、总结
 
 **Execution  执行对象**
 
@@ -900,9 +923,7 @@ public void testViewImage() throws Exception {
 
 **ProcessInstance  流程实例**
 
- 特指流程从开始到结束的那个最大的执行分支，一个执行的流程中，流程实例只有1个。
-
- 
+特指流程从开始到结束的那个最大的执行分支，一个执行的流程中，流程实例只有1个。
 
 **注意**
 
@@ -911,8 +932,6 @@ public void testViewImage() throws Exception {
   （2）如果一个流程有分支和聚合，那么执行对象ID和流程实例ID就不相同
 
   （3）一个流程中，流程实例只有1个，执行对象可以存在多个。
-
- 
 
 **Task任务**
 
@@ -923,8 +942,6 @@ public void testViewImage() throws Exception {
  act_ru_task：正在执行的任务信息
 
  act_hi_taskinst：已经执行完的历史任务信息
-
- 
 
 ## ***\*9\*\*：流程变量\*\**\***
 
