@@ -1150,8 +1150,6 @@ act_ru_variable：正在执行的流程变量表
 
 act_hi_varinst：流程变量历史表
 
- 
-
 • **2：扩展知识：setVariable和setVariableLocal的区别**
 
 setVariable：设置流程变量的时候，流程变量名称相同的时候，后一次的值替换前一次的值，而且可以看到TASK_ID的字段不会存放任务ID的值
@@ -1168,55 +1166,123 @@ setVariableLocal：
 
 2：还有，使用setVariableLocal说明流程变量绑定了当前的任务，当流程继续执行时，下个任务获取不到这个流程变量（因为正在执行的流程变量中没有这个数据），所有查询正在执行的任务时不能查询到我们需要的数据，此时需要查询历史的流程变量。
 
-## **10\**：流程执行历史记录\****
+## 9、流程执行历史记录
 
-### 10.1**：查询历史流程实例**
+### 9.1、查询历史流程实例
 
 查找按照某个流程定义的规则一共执行了多少次流程
 
-![img](https://img-blog.csdn.net/20170303182100950)
+```java
+/**
+ * 查看历史流程实例
+ */
+@Test
+public void testQueryHistoryProcessInstance() {
+    HistoryService historyService = processEngine.getHistoryService();
+    List<HistoricProcessInstance> historicProcessInstances = historyService.createHistoricProcessInstanceQuery()
+            .processDefinitionKey("vacation2")
+            .orderByProcessInstanceStartTime().desc()
+            .list();
+    historicProcessInstances.forEach(historicProcessInstance -> {
+        System.err.println("id = " + historicProcessInstance.getId());
+        System.err.println("pdid = " + historicProcessInstance.getProcessDefinitionId());
+        System.err.println("did" + historicProcessInstance.getDeploymentId());
+        System.err.println(historicProcessInstance.getStartTime());
+        System.err.println(historicProcessInstance.getEndTime());
+        System.err.println("cost" + historicProcessInstance.getDurationInMillis() + "ms");
+        System.err.println("==============================");
+    });
+}
+```
 
-
-
-### **10.2\**：查询历史活动\****
-
-
+### 9.2、查询历史活动
 
 某一次流程的执行一共经历了多少个活动
 
-![img](https://img-blog.csdn.net/20170303182139403?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE4Nzc1MDcwNTQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+```java
+/**
+ * 历史活动查看（某一次流程的执行经过多少步）
+ */
+@Test
+public void testHistoryActivityInstance() {
+    List<HistoricActivityInstance> historicActivityInstances = processEngine.getHistoryService()
+            .createHistoricActivityInstanceQuery()
+            .processInstanceId("27501")
+            .orderByHistoricActivityInstanceEndTime().asc()
+            .list();
+    historicActivityInstances.forEach(historicActivityInstance -> {
+        System.err.println("activitiId:" + historicActivityInstance.getActivityId());
+        System.err.println("name:" + historicActivityInstance.getActivityName());
+        System.err.println("type:" + historicActivityInstance.getActivityType());
+        System.err.println("pid:" + historicActivityInstance.getProcessInstanceId());
+        System.err.println("assignee:" + historicActivityInstance.getAssignee());
+        System.err.println("startTime:" + historicActivityInstance.getStartTime());
+        System.err.println("endTime:" + historicActivityInstance.getEndTime());
+        System.err.println("duration:" + historicActivityInstance.getDurationInMillis());
+        System.err.println("======================================================");
+    });
+}
+```
 
-
-
-### **10.3\**：查询历史任务\****
-
-
+### 9.3、查询历史任务
 
 某一次流程的执行一共经历了多少个任务
 
-![img](https://img-blog.csdn.net/20170303182228170?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE4Nzc1MDcwNTQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+```java
+/**
+ * 历史任务查看（某一次流程执行经历多少任务节点）
+ */
+@Test
+public void testQueryHistoryTask() {
+    List<HistoricTaskInstance> historicTaskInstances = processEngine.getHistoryService()
+            .createHistoricTaskInstanceQuery()
+            .processInstanceId("27501")
+            .orderByHistoricTaskInstanceEndTime().asc()
+            .list();
+    historicTaskInstances.forEach(historicTaskInstance -> {
+        System.err.println("taskId:" + historicTaskInstance.getId());
+        System.err.println("name:" + historicTaskInstance.getName());
+        System.err.println("assignee:" + historicTaskInstance.getAssignee());
+        System.err.println("pdid:" + historicTaskInstance.getProcessDefinitionId());
+        System.err.println("piid:" + historicTaskInstance.getProcessInstanceId());
+        System.err.println("startTime:" + historicTaskInstance.getStartTime());
+        System.err.println("endTime:" + historicTaskInstance.getEndTime());
+        System.err.println("duration:" + historicTaskInstance.getDurationInMillis());
+        System.err.println("=======================================================");
+    });
+}
+```
 
+### 9.4、查询历史流程变量
 
+某一次流程的执行一共设置的流程变量
 
+```java
+/**
+ * 某一次流程执行中设置的流程变量
+ */
+@Test
+public void testHistoryVariables() {
+    List<HistoricVariableInstance> historicVariableInstances = processEngine.getHistoryService()
+            .createHistoricVariableInstanceQuery()
+            .processInstanceId("27501")
+            .list();
+    historicVariableInstances.forEach(historicVariableInstance -> {
+        System.err.println("piid:" + historicVariableInstance.getProcessInstanceId());
+        System.err.println("name:" + historicVariableInstance.getVariableName());
+        System.err.println("value:" + historicVariableInstance.getValue());
+        System.err.println("taskId:" + historicVariableInstance.getTaskId());
+        System.err.println("type:" + historicVariableInstance.getVariableTypeName());
+        System.err.println("=======================================");
+    });
+}
+```
 
+### 9.5、总结
 
-### 10.4**：查询历史流程变量**
-
-
-
-某一次流程的执行一共设置的流程变量![img](https://img-blog.csdn.net/20170303182326781?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE4Nzc1MDcwNTQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
-
-
-### **10.5\**：总结\****
-
-
-
-由于数据库中保存着历史信息以及正在运行的流程实例信息，在实际项目中对已完成任务的查看频率远不及对代办和可接任务的查看，所以在activiti采用分开管理，把正在运行的交给RuntimeService、TaskService管理，而历史数据交给HistoryService来管理。
+由于数据库中保存着历史信息以及正在运行的流程实例信息，在实际项目中对已完成任务的查看频率远不及对代办和可接任务的查看，所以**在activiti采用分开管理，把正在运行的交给RuntimeService、TaskService管理，而历史数据交给HistoryService来管理**。
 
 这样做的好处在于，加快流程执行的速度，因为正在执行的流程的表中数据不会很大。
-
-
 
 ## ***\*11:\*\*连线\*\**\***
 
