@@ -961,7 +961,7 @@ public void testProcessStatus() {
 
 ### 8.1、流程图
 
-![img](https://img-blog.csdn.net/20170303180917382)
+![img](../static/Vacation2.png)
 
 
 
@@ -981,41 +981,70 @@ public void testProcessStatus() {
 
 
 
-### **9.2\**：部署流程定义\****
+### 8.2、部署流程定义
 
+```java
+    /**
+     * 输入流加载资源文件的3种方式
+     * this.getClass().getClassLoader().getResourceAsStream("static/Vacation2.bpmn");
+     * 从classpath根目录下加载指定文件
+     * this.getClass().getResourceAsStream("static/Vacation2.bpmn");
+     * 从当前包下加载指定文件
+     * this.getClass().getResourceAsStream("/static/Vacation2.bpmn")
+     * 从classpath根目录下加载指定文件
+     */
+    @Test
+    public void testDeploy() {
+        InputStream inputStream = this.getClass().getResourceAsStream("/static/Vacation2.bpmn");
+        InputStream inputStreampng = this.getClass().getResourceAsStream("/static/Vacation2.png");
 
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        Deployment deployment = processEngine.getRepositoryService()
+                .createDeployment()
+                .name("请假申请流程")
+                // .addClasspathResource("static/Vacation2.bpmn")
+                // .addClasspathResource("static/Vacation2.png")
+                .addInputStream("static/Vacation2.bpmn", inputStream)
+                .addInputStream("static/Vacation2.png", inputStreampng)
+                .deploy();
+        System.err.println(deployment.getId());
+    }
+```
 
+### 8.3、启动流程实例
 
+```java
+@Test
+public void testStartProcess() {
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("opTenant", "1112");
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+        .startProcessInstanceByKey("vacation2", variables);
+    System.err.println(processInstance.getProcessDefinitionId());
+    System.err.println(processInstance.getActivityId());
+    System.err.println(processInstance.getId());
+}
+```
 
-![img](https://img-blog.csdn.net/20170303181259993)
+### 8.4、设置流程变量
 
-
-
-说明：
-
-• **输入流加载资源文件的3种方式**
-
-![img](https://img-blog.csdn.net/20170303181329962)
-
-![img](https://img-blog.csdn.net/20170303181346040)
-
-
-
-### **9.3\**：启动流程实例\****
-
-![img](https://img-blog.csdn.net/20170303181405306)
-
-
-
-
-
-### **9.4\**：设置流程变量\****
-
-![img](https://img-blog.csdn.net/20170303181424910)
-
-
-
-
+```java
+@Test
+public void testSetVariables() {
+    Map<String, Object> variables = new HashMap<>();
+    // 相同key值会覆盖
+    variables.put("opTenant", "2222");
+    variables.put("comment", "申请假期");
+    variables.put("days", 5);
+    // 必须实现Serializable接口
+    Person person = new Person("小明", 12);
+    variables.put("with", person);
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    processEngine.getTaskService()
+            .complete("27505", variables);
+}
+```
 
 说明：
 
@@ -1027,11 +1056,32 @@ public void testProcessStatus() {
 
 4) 设置流程变量的时候，向act_ru_variable这个表添加数据
 
-### **9.5\**：获取流程变量\****
+### 8.5、获取流程变量
 
-![img](https://img-blog.csdn.net/20170303181453854)
-
-
+```java
+@Test
+public void testGetVariables() {
+    String taskId = "30007";
+    // ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    TaskService taskService = processEngine.getTaskService();
+    String opTenant = (String) taskService.getVariable(taskId, "opTenant");
+    String comment = (String) taskService.getVariable(taskId, "comment");
+    Integer days = (Integer) taskService.getVariable(taskId, "days");
+    Person with = taskService.getVariable(taskId, "with", Person.class);
+    System.err.println("opTenant=" + opTenant);
+    System.err.println("comment=" + comment);
+    System.err.println("days=" + days);
+    System.err.println("with=" + with);
+    System.err.println("==============获取多个variables================");
+    List<String> variableNames = new ArrayList<>();
+    variableNames.add("opTenant");
+    variableNames.add("comment");
+    variableNames.add("days");
+    variableNames.add("with");
+    Map<String, Object> variables = taskService.getVariables(taskId, variableNames);
+    variables.entrySet().forEach(entry -> System.err.println(entry.getKey() + "=" + entry.getValue()));
+}
+```
 
 说明：
 
@@ -1041,13 +1091,7 @@ public void testProcessStatus() {
 
 3） Javabean类型设置获取流程变量，除了需要这个javabean实现了Serializable接口外，还要求流程变量对象的属性不能发生编号，否则抛出异常。
 
-### **9.6\**：模拟流程变量的设置和获取的场景\****
-
-![img](https://img-blog.csdn.net/20170303181521901)
-
-
-
-说明：
+### 8.6、模拟流程变量的设置和获取的场景
 
 1） RuntimeService对象可以设置流程变量和获取流程变量
 
@@ -1065,25 +1109,26 @@ Map集合的key表示流程变量的名称
 
 Map集合的value表示流程变量的值
 
+### 8.7、查询历史的流程变量
 
-
-### **9.7\**：查询历史的流程变量\****
-
-![img](https://img-blog.csdn.net/20170303181551057)
-
-
-
-
+```java
+@Test
+public void testGetHistoryVariables() {
+    HistoryService historyService = processEngine.getHistoryService();
+    List<HistoricVariableInstance> list = historyService.createHistoricVariableInstanceQuery()
+            .variableName("opTenant")
+            .list();
+    if (list != null) {
+        list.forEach(System.err::println);
+    }
+}
+```
 
 说明：
 
 1）历史的流程变量查询，指定流程变量的名称，查询act_hi_varinst表（也可以针对，流程实例ID，执行对象ID，任务ID查询）
 
- 
-
- 
-
-### 9.8**：流程变量的支持的类型**
+### 8.8、流程变量的支持的类型
 
 如图是从官网列出来的流程变量
 
@@ -1093,7 +1138,7 @@ Map集合的value表示流程变量的值
 
 从图中可以看出包括了大部分封装类型和Date、String和实现了Serializable接口的类的类型。
 
-### 9.9**：总结**
+### 8.9、总结
 
 • **1：流程变量**
 
