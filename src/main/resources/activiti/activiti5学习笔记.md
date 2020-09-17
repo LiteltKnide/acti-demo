@@ -1503,41 +1503,88 @@ PS：我在这个地方吃了个亏，做好流程图后，测试完成任务时
 
 5) 使用流程变量，设置连线的条件，并按照连线的条件执行工作流，如果没有条件符合的条件，则以默认的连线离开。
 
-## ***\*13\*\*：并行网关\*\**\**\*(parallelGateWay)\****
+## 12、并行网关(parallelGateWay)
 
-### **13.1\**：流程图\****
+### 12.1、流程图
 
+```xml
+<process id="ParallelGateWay" name="ParallelProcess" isExecutable="true">
+  <startEvent id="StartEvent" name="Start"></startEvent>
+  <parallelGateway id="ParallelGateWay1" name="ParallelGateWay1"></parallelGateway>
+  <userTask id="UserTask1" name="发货"></userTask>
+  <userTask id="UserTask3" name="付款"></userTask>
+  <userTask id="UserTask2" name="收货"></userTask>
+  <userTask id="UserTask4" name="收款"></userTask>
+  <parallelGateway id="ParallelGateWay2" name="parallelGateWay2"></parallelGateway>
+  <endEvent id="EndEvent" name="End"></endEvent>
+  <sequenceFlow id="sid-44D34518-29F3-4911-98D1-0043A5D31E8C" sourceRef="StartEvent" targetRef="ParallelGateWay1"></sequenceFlow>
+  <sequenceFlow id="sid-A1C69182-9710-4C7A-A63E-5E2E6D8642A6" sourceRef="ParallelGateWay1" targetRef="UserTask1"></sequenceFlow>
+  <sequenceFlow id="sid-893CFBED-AAC6-45B7-B122-99E683764BFF" sourceRef="ParallelGateWay1" targetRef="UserTask3"></sequenceFlow>
+  <sequenceFlow id="sid-21CC75D6-EBE4-4079-8012-AAA2EF8D25EE" sourceRef="UserTask1" targetRef="UserTask2"></sequenceFlow>
+  <sequenceFlow id="sid-2C58D40C-323E-42D5-90FE-B76332B1F5AA" sourceRef="UserTask3" targetRef="UserTask4"></sequenceFlow>
+  <sequenceFlow id="sid-F4E48FF9-837F-4A9D-9AEF-718EE9597CEB" sourceRef="UserTask2" targetRef="ParallelGateWay2"></sequenceFlow>
+  <sequenceFlow id="sid-17C16F8A-307F-4EDF-883B-1DDB27BB1044" sourceRef="UserTask4" targetRef="ParallelGateWay2"></sequenceFlow>
+  <sequenceFlow id="sid-1B8231DD-26C5-4D53-8EEA-9FC04DD30817" sourceRef="ParallelGateWay2" targetRef="EndEvent"></sequenceFlow>
+</process>
+```
 
+### 12.2、部署流程定义+启动流程实例
 
-![img](https://img-blog.csdn.net/20170303183418065?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE4Nzc1MDcwNTQ=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
+```java
+/**
+ * 根据设计器生成的model部署流程
+ * @throws Exception
+ */
+@Test
+public void testDeployByModel() throws Exception {
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    String modelId = "72505";
+    Model model = repositoryService.getModel(modelId);
+    byte[] source = repositoryService.getModelEditorSource(model.getId());
+    if (source == null) {
+        System.err.println("model：" + modelId + "不存在");
+        return;
+    }
+    JsonNode jsonNode = new ObjectMapper().readTree(source);
+    BpmnModel bpmnModel = new BpmnJsonConverter().convertToBpmnModel(jsonNode);
 
+    String processName = model.getName()+".bpmn";
+    byte[] bytes = new BpmnXMLConverter().convertToXML(bpmnModel);
+    // 部署流程
+    Deployment deployment = repositoryService
+            .createDeployment().name(model.getName())
+            .addString(processName, new String(bytes,"UTF-8"))
+            .deploy();
+    System.err.println(deployment.getId());
+}
 
+/**
+ * 启动流程
+ */
+@Test
+public void testStartProcess() {
+    ProcessInstance vacation = processEngine.getRuntimeService()
+            .startProcessInstanceByKey("ParallelGateWay");
+    System.err.println(vacation.getId());
+    System.err.println(vacation.getProcessDefinitionId());
+    System.err.println(vacation.getName());
+    System.err.println(vacation.getDeploymentId());
+}
+```
 
+### 12.3、完成我的个人任务
 
-
-### **13.2\**：部署流程定义\**\**+\**\**启动流程实例\****
-
-![img](https://img-blog.csdn.net/20170303183500516)
-
-
-
-
-
-### **13.3\**：查询我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303183530175)
-
-
-
-
-
-### **13.4\**：完成我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303183556189)
-
-
-
-
+```java
+/**
+ * 完成任务
+ */
+@Test
+public void testCompleted() {
+    String taskId = "145002";
+    processEngine.getTaskService()
+            .complete(taskId);
+}
+```
 
 说明：
 
