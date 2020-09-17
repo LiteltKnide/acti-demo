@@ -72,13 +72,13 @@ public class RepositoryServiceTest {
 
     @Test
     public void testViewImage() throws Exception {
-        String deploymentId = "2501";
+        String deploymentId = "95001";
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         List<String> resourceNames = processEngine.getRepositoryService()
                 .getDeploymentResourceNames(deploymentId);
         resourceNames.forEach(resourceName -> {
             System.err.println(resourceName);
-            File file = new File("e:/" + resourceName);
+            File file = new File("E:\\MyWork\\WorkSpace\\IDEASpace\\acti-demo\\src\\main\\resources\\static\\" + resourceName);
             InputStream inputStream = processEngine.getRepositoryService()
                     .getResourceAsStream(deploymentId, resourceName);
             try {

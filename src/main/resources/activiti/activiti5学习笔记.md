@@ -1284,45 +1284,94 @@ public void testHistoryVariables() {
 
 这样做的好处在于，加快流程执行的速度，因为正在执行的流程的表中数据不会很大。
 
-## ***\*11:\*\*连线\*\**\***
+## 10、连线
 
-### **11.1\**：流程图\****
+### 10.1、流程图
 
-
-
-![img](https://img-blog.csdn.net/20170303182532780)
+![img](../static/Vacation-Flow.Vacation.png)
 
 
 
-**注意：如果将流程图放置在和java类相同的路径，需要配置**：
-
-![img](https://img-blog.csdn.net/20170303182556285)
-
-
-
-### **11.2\**：部署流程定义\**\**+\**\**启动流程实例\****
-
-![img](https://img-blog.csdn.net/20170303182624255)
-
-
-
-
-
-### **11.3\**：查询我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303182647608)
-
-
-
-
-
-### **11.4\**：完成任务\****
-
-![img](https://img-blog.csdn.net/20170303182719912)
+```xml
+<process id="Vacation" name="请假申请" isExecutable="true">
+    <startEvent id="StartEvent" name="Start"></startEvent>
+    <userTask id="UserTask3" name="审批【总经理】"></userTask>
+    <endEvent id="EndEvent" name="End"></endEvent>
+    <userTask id="UserTask1" name="员工请假"></userTask>
+    <userTask id="UserTask2" name="审批【部门经理】"></userTask>
+    <sequenceFlow id="flow1" name="to 员工请假" sourceRef="StartEvent" targetRef="UserTask1"></sequenceFlow>
+    <sequenceFlow id="flow2" name="to 审批【部门经理】" sourceRef="UserTask1" targetRef="UserTask2"></sequenceFlow>
+    <sequenceFlow id="flow3" name="to 审批【总经理】" sourceRef="UserTask2" targetRef="UserTask3">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${message=='重要'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow4" name="to End" sourceRef="UserTask2" targetRef="EndEvent">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${message=='不重要'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow5" name="to End" sourceRef="UserTask3" targetRef="EndEvent"></sequenceFlow>
+  </process>
+```
 
 
 
+### 10.2、部署流程定义+启动流程实例
 
+```java
+/**
+ * 根据设计器生成的model部署流程
+ * @throws Exception
+ */
+@Test
+public void testDeployByModel() throws Exception {
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    String modelId = "70001";
+    Model model = repositoryService.getModel(modelId);
+    byte[] source = repositoryService.getModelEditorSource(model.getId());
+    if (source == null) {
+        System.err.println("model：" + modelId + "不存在");
+        return;
+    }
+    JsonNode jsonNode = new ObjectMapper().readTree(source);
+    BpmnModel bpmnModel = new BpmnJsonConverter().convertToBpmnModel(jsonNode);
+
+    String processName = model.getName()+".bpmn";
+    byte[] bytes = new BpmnXMLConverter().convertToXML(bpmnModel);
+    // 部署流程
+    Deployment deployment = repositoryService
+            .createDeployment().name(model.getName())
+            .addString(processName, new String(bytes,"UTF-8"))
+            .deploy();
+    System.err.println(deployment.getId());
+}
+
+/**
+ * 启动流程
+ */
+@Test
+public void testStartProcess() {
+    ProcessInstance vacation = processEngine.getRuntimeService()
+            .startProcessInstanceByKey("Vacation");
+    System.err.println(vacation.getId());
+    System.err.println(vacation.getProcessDefinitionId());
+    System.err.println(vacation.getName());
+    System.err.println(vacation.getDeploymentId());
+}
+```
+
+### 10.3、完成任务
+
+```java
+/**
+ * 完成任务
+ */
+@Test
+public void testCompleted() {
+    String taskId = "90003";
+    Map<String, Object> variables = new HashMap<>();
+    variables.put("message", "不重要");
+    processEngine.getTaskService()
+            .complete(taskId, variables);
+}
+```
 
 说明：
 
@@ -1330,13 +1379,11 @@ public void testHistoryVariables() {
 
 对应：
 
-![img](https://img-blog.csdn.net/20170303182752765)
+```xml
+<conditionExpression xsi:type="tFormalExpression"><![CDATA[${message=='重要'}]]></conditionExpression>
+```
 
-
-
-### 11.5**：总结**
-
-
+### 10.4、总结
 
 1、一个活动中可以指定一个或多个SequenceFlow（Start中有一个，End中没有）。
 
@@ -1348,15 +1395,7 @@ public void testHistoryVariables() {
 
 2、如果只有一个，则可以不使用流程变量设置codition的名称；
 
-![img](https://img-blog.csdn.net/20170303182816484)
-
-
-
 如果有多个，则需要使用流程变量设置codition的名称。message表示流程变量的名称，‘不重要’表示流程变量的值，${}（或者#{}）中间的内容要使用boolean类型的表达式，用来判断应该执行的连线。
-
-![img](https://img-blog.csdn.net/20170303182845570)
-
-
 
 ## ***\*12\*\*：排他网关（\*\**\**\*ExclusiveGateWay\**\**）\****
 
