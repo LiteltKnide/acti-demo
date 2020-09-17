@@ -1397,39 +1397,97 @@ public void testCompleted() {
 
 如果有多个，则需要使用流程变量设置codition的名称。message表示流程变量的名称，‘不重要’表示流程变量的值，${}（或者#{}）中间的内容要使用boolean类型的表达式，用来判断应该执行的连线。
 
-## ***\*12\*\*：排他网关（\*\**\**\*ExclusiveGateWay\**\**）\****
+## 11、排他网关（ExclusiveGateWay）
 
-### **12.1\**：流程图\****
+### 11.1、流程图
 
-![img](https://img-blog.csdn.net/20170303182922117)
+![img](../static/ExclusiveGateWay.ExclusiveProcess.png)
 
+```xml
+<process id="ExclusiveProcess" name="费用报销申请" isExecutable="true">
+  <startEvent id="StartEvent" name="Start"></startEvent>
+  <userTask id="UserTask1" name="费用报销申请"></userTask>
+  <exclusiveGateway id="ExclusiveGateWay" default="gateWay1"></exclusiveGateway>
+  <userTask id="UserTask3" name="审批【部门经理】"></userTask>
+  <userTask id="UserTask2" name="财务"></userTask>
+  <endEvent id="sid-2CFE87EB-0C94-46A7-8A98-0D81071FAFF2"></endEvent>
+  <sequenceFlow id="sid-5F97DD79-0854-4E00-AF2C-D82858BABA88" sourceRef="UserTask1" targetRef="ExclusiveGateWay"></sequenceFlow>
+  <sequenceFlow id="sid-52C15A3C-9E0B-49A4-800E-31DA48A4847E" sourceRef="UserTask2" targetRef="sid-2CFE87EB-0C94-46A7-8A98-0D81071FAFF2"></sequenceFlow>
+  <sequenceFlow id="sid-281BBF04-0D35-4074-B57D-208A936B0879" sourceRef="UserTask3" targetRef="sid-2CFE87EB-0C94-46A7-8A98-0D81071FAFF2"></sequenceFlow>
+  <userTask id="UserTask4" name="审批【总经理】"></userTask>
+  <sequenceFlow id="sid-D34DF86E-D874-419E-9DB3-43E352D45AD5" sourceRef="UserTask4" targetRef="sid-2CFE87EB-0C94-46A7-8A98-0D81071FAFF2"></sequenceFlow>
+  <sequenceFlow id="flow1" sourceRef="StartEvent" targetRef="UserTask1"></sequenceFlow>
+  <sequenceFlow id="gateWay2" name="费用大于500小于1000" sourceRef="ExclusiveGateWay" targetRef="UserTask3">
+    <conditionExpression xsi:type="tFormalExpression"><![CDATA[${money >= 500 && money <= 1000}]]></conditionExpression>
+  </sequenceFlow>
+  <sequenceFlow id="gateWay3" name="费用大于1000" sourceRef="ExclusiveGateWay" targetRef="UserTask4">
+    <conditionExpression xsi:type="tFormalExpression"><![CDATA[${money > 1000}]]></conditionExpression>
+  </sequenceFlow>
+  <sequenceFlow id="gateWay1" name="默认执行财务；小于500" sourceRef="ExclusiveGateWay" targetRef="UserTask2"></sequenceFlow>
+</process>
+```
 
+### 11.2、部署流程定义+启动流程实例
 
+```java
+/**
+ * 根据设计器生成的model部署流程
+ * @throws Exception
+ */
+@Test
+public void testDeployByModel() throws Exception {
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    String modelId = "72502";
+    Model model = repositoryService.getModel(modelId);
+    byte[] source = repositoryService.getModelEditorSource(model.getId());
+    if (source == null) {
+        System.err.println("model：" + modelId + "不存在");
+        return;
+    }
+    JsonNode jsonNode = new ObjectMapper().readTree(source);
+    BpmnModel bpmnModel = new BpmnJsonConverter().convertToBpmnModel(jsonNode);
 
+    String processName = model.getName()+".bpmn";
+    byte[] bytes = new BpmnXMLConverter().convertToXML(bpmnModel);
+    // 部署流程
+    Deployment deployment = repositoryService
+            .createDeployment().name(model.getName())
+            .addString(processName, new String(bytes,"UTF-8"))
+            .deploy();
+    System.err.println(deployment.getId());
+}
 
-### **12.2\**：部署流程定义\**\**+\**\**启动流程实例\****
+/**
+ * 启动流程
+ */
+@Test
+public void testStartProcess() {
+    ProcessInstance vacation = processEngine.getRuntimeService()
+            .startProcessInstanceByKey("ExclusiveProcess");
+    System.err.println(vacation.getId());
+    System.err.println(vacation.getProcessDefinitionId());
+    System.err.println(vacation.getName());
+    System.err.println(vacation.getDeploymentId());
+}
+```
 
-![img](https://img-blog.csdn.net/20170303182945165)
+### 11.3、完成我的个人任务
 
-
-
-
-
-### **12.3\**：查询我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303183012603)
-
-
-
-
-
-### **12.4\**：完成我的个人任务\****
-
-![img](https://img-blog.csdn.net/20170303183035986)
-
-
-
-
+```java
+/**
+ * 完成任务
+ */
+@Test
+public void testCompleted() {
+    String taskId = "130004";
+    Map<String, Object> variables = new HashMap<>();
+    // variables.put("money", 100);  默认走财务
+    variables.put("money", 600); // 走部门经理
+    // variables.put("money", 2000); // 走总经理
+    processEngine.getTaskService()
+            .complete(taskId, variables);
+}
+```
 
 说明：
 
@@ -1437,33 +1495,13 @@ public void testCompleted() {
 
 2) 由排他网关流出的顺序流都有个conditionExpression元素，在内部维护返回boolean类型的决策结果。
 
-3) 决策网关只会返回一条结果。当流程执行到排他网关时，流程引擎会自动检索网关出口，从上到下检索如果发现第一条决策结果为true或者没有设置条件的(默认为成立)，则流出。
+3) 决策网关只会返回一条结果。**当流程执行到排他网关时，流程引擎会自动检索网关出口，从上到下检索如果发现第一条决策结果为true或者没有设置条件的(默认为成立)，则流出。**
+
+PS：我在这个地方吃了个亏，做好流程图后，测试完成任务时，设置的流程变量money=600，但是走到了默认财务那一步，后来看了下xml里面的sequenceFlow顺序，发现默认的决策在最前面，按照上面的规则，直接就流出到财务那里了。 - - 
 
 4) 如果没有任何一个出口符合条件，则抛出异常
 
-5) 使用流程变量，设置连线的条件，并按照连线的条件执行工作流，如果没有条件符合的条件，则以默认的连线离开。例如：
-
-![img](https://img-blog.csdn.net/20170303183103713)
-
-
-
-则执行连线：
-
-![img](https://img-blog.csdn.net/20170303183128252)
-
-
-
-如果使用流程变量设置
-
-![img](https://img-blog.csdn.net/20170303183207346)
-
-
-
-则执行连线：
-
-![img](https://img-blog.csdn.net/20170303183235512)
-
-
+5) 使用流程变量，设置连线的条件，并按照连线的条件执行工作流，如果没有条件符合的条件，则以默认的连线离开。
 
 ## ***\*13\*\*：并行网关\*\**\**\*(parallelGateWay)\****
 
