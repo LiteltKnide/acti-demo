@@ -1696,395 +1696,161 @@ public void testReceiveTask() {
 
 1） 当前任务（一般指机器自动完成，但需要耗费一定时间的工作）完成后，向后推移流程，可以调用runtimeService.signal(executionId)，传递接收执行对象的id。
 
-## ***\*16\*\*：用户任务（\*\*\*\*userTask\*\*\*\*，即用户操作的任务）\*\**\***
+## 15、用户任务（userTask，即用户操作的任务）
 
-### **16.1\**：个人任务\****
+### 15.1、个人任务
 
-#### **16.1.1\**：流程图\****
+#### 15.1.1、流程图
 
-![img](https://img-blog.csdn.net/20170303184007039)
+![img](../static/UserTaskTest1.UserTaskTest.png)
 
-
-
-#### **16.1.2:\**：分配个人任务方式一（直接指定办理人）\****
+#### 15.1.2、分配个人任务方式一（直接指定办理人）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184055427)
-
-
+```xml
+<userTask id="UserTask" name="审批" activiti:assignee="王总"></userTask>
+```
 
 2：测试代码：
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-**//部署流程定义，启动流程实例**
-
+```
 @Test
+public void testUserTask1() {
+    // 流程启动
+    ProcessInstance userTaskTest1 = runtimeService
+            .startProcessInstanceByKey("UserTaskTest");
+    System.err.println(userTaskTest1.getId());
 
-**public void** testTask()**throws** Exception {
+    // 查看个人任务
+    String assignee = "王总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .processInstanceId(userTaskTest1.getId())
+            .taskAssignee(assignee)
+            .list();
 
-
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-
-
-// 2 启动流程
-
-//启动流程实例的同时，设置流程变量
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess");
-
-System.*out*.println("pid:" + pi.getId());
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+        // 完成任务
+        taskService.complete(task.getId());
+        System.err.println("任务" + task.getId() + "完成");
+    });
 
 }
-
-
-
-**//查询我的个人任务列表**
-
-@Test
-
-**public void** findMyTaskList(){
-
-String userId = "张三丰";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("createTime="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
-}
-
-}
-
-
-
-**//完成任务**
-
-@Test
-
-**public void** completeTask(){
-
-String taskId = "3209";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
-}
+```
 
 说明：
 
-1） 张三丰是个人任务的办理人
+1） 王总是个人任务的办理人
 
 2） 但是这样分配任务的办理人不够灵活，因为项目开发中任务的办理人不要放置XML文件中。
 
-#### 16.1.3:**：分配个人任务方式二（使用流程变量）**
+#### 15.1.3、分配个人任务方式二（使用流程变量）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184146823)
-
-
+```xml
+<userTask id="UserTask" name="审批" activiti:assignee="#{userId}"></userTask>
+```
 
 2：测试代码
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-//部署流程定义，启动流程实例
-
+```java
 @Test
+public void testUserTask2() {
+    // 流程启动
+    String assignee = "王总";
+    Map<String, Object> var = new HashMap<>();
+    var.put("userId", assignee);
+    ProcessInstance userTaskTest2 = runtimeService
+            .startProcessInstanceByKey("UserTaskTest", var);
+    System.err.println(userTaskTest2.getId());
 
-public void testTask()throws Exception {
+    // 查看个人任务
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskAssignee(assignee)
+            .list();
 
-
-
-// 1发布流程
-
-InputStream inputStreamBpmn =this.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng =this.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-
-
-// 2启动流程
-
-//启动流程实例的同时，设置流程变量
-
-Map<String, Object> variables =new HashMap<String, Object>();
-
-variables.put("userID","张翠三");
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess",variables);
-
-System.*out*.println("pid:" + pi.getId());
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+        // 完成任务
+        taskService.complete(task.getId());
+        System.err.println("任务" + task.getId() + "完成");
+    });
 }
-
-
-
-//查询我的个人任务列表
-
-@Test
-
-public void findMyTaskList(){
-
-String userId = "张翠三";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-for(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("createTime="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
-}
-
-}
-
-
-
-//完成任务
-
-@Test
-
-public void completeTask(){
-
-String taskId = "3209";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
-}
+```
 
 说明：
 
-1） 张翠山是个人任务的办理人
+1） 王总是个人任务的办理人
 
 2） 在开发中，可以在页面中指定下一个任务的办理人，通过流程变量设置下一个任务的办理人
 
-#### **16.1.4:\**：分配个人任务方式三（使用类）\****
+#### 15.1.4、分配个人任务方式三（使用类）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184313694)
-
-![img](https://img-blog.csdn.net/20170303184334076)
-
-
-
-此时流程图的XML文件，如图：
-
-![img](https://img-blog.csdn.net/20170303184401780)
-
-
+```xml
+<userTask id="UserTask" name="审批">
+  <extensionElements>
+    <activiti:taskListener event="create" class="com.example.actidemo.listener.UserTask3Listener"></activiti:taskListener>
+  </extensionElements>
+</userTask>
+```
 
 2：TaskListenerImpl类，用来设置任务的办理人
 
-**public class** TaskListenerImpl**implements TaskListener** {
+```java
+package com.example.actidemo.listener;
 
- 
+import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.TaskListener;
 
-/**指定个人任务和组任务的办理人*/
+/**
+ * @author hujt49
+ * @Description
+ * @create 2020-09-21 11:18
+ */
+public class UserTask3Listener implements TaskListener {
+    private static final long serialVersionUID = -4617807354339318473L;
 
-@Override
-
-**public void** notify(DelegateTask delegateTask) {
-
-String assignee = "张无忌";
-
-//指定个人任务
-
-**delegateTask.setAssignee(assignee);**
-
+    @Override
+    public void notify(DelegateTask delegateTask) {
+        String assignee = "王总";
+        delegateTask.setAssignee(assignee);
+    }
 }
-
- 
-
-}
+```
 
 3：测试代码
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-**//部署流程定义，启动流程实例**
-
+```java
 @Test
+public void testUserTask3() {
+    // 流程启动
+    ProcessInstance userTaskTest3 = runtimeService
+            .startProcessInstanceByKey("UserTaskTest");
+    System.err.println(userTaskTest3.getId());
 
-**public void** testTask()**throws** Exception {
+    // 查看个人任务
+    String assignee = "王总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskAssignee(assignee)
+            .list();
 
-
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-
-
-// 2 启动流程
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess");
-
-System.*out*.println("pid:" + pi.getId());
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+        // 可以分配个人任务从一个人到另一个人（认领任务）
+        // taskService.setAssignee(task.getId(), "张总");
+        // 完成任务
+        taskService.complete(task.getId());
+        System.err.println("任务" + task.getId() + "完成");
+    });
 }
-
-
-
-**//查询我的个人任务列表**
-
-@Test
-
-**public void** findMyTaskList(){
-
-String userId = "张无忌";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("createTime="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
-}
-
-}
-
-
-
-**//完成任务**
-
-@Test
-
-**public void** completeTask(){
-
-String taskId = "3408";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
-}
-
- 
-
-**//可以分配个人任务从一个人到另一个人（认领任务）**
-
-@Test
-
-**public void** setAssigneeTask(){
-
-//任务ID
-
-String taskId = "3408";
-
-//指定认领的办理者
-
-String userId = "周芷若";
-
-processEngine.getTaskService()//
-
-.setAssignee(taskId, userId);
-
-}
+```
 
 说明：
 
@@ -2094,11 +1860,11 @@ processEngine.getTaskService()//
 
 3） 在开发中，可以将每一个任务的办理人规定好，例如张三的领导是李四，李四的领导是王五，这样张三提交任务，就可以查询出张三的领导是李四，通过类的方式设置下一个任务的办理人
 
-#### 16.1.5**：总结**
+#### 15.1.5、总结
 
 **个人任务及三种分配方式：**
 
-  1：在taskProcess.bpmn中直接写 assignee=“张三丰"
+  1：在taskProcess.bpmn中直接写 assignee=“王总"
 
   2：在taskProcess.bpmn中写 assignee=“#{userID}”，变量的值要是String的。
 
@@ -2108,11 +1874,9 @@ processEngine.getTaskService()//
 
 ​     delegateTask.setAssignee(assignee);// 指定个人任务的办理人
 
-  
-
  **使用任务ID和办理人重新指定办理人：**
 
-   processEngine.getTaskService()//
+   processEngine.getTaskService()
 
 ​              .setAssignee(taskId, userId);
 
@@ -3294,3 +3058,4 @@ List<Task> list = processEngine.getTaskService()//
 ​        .list();
 
 Activiti总结：
+

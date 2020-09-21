@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="UserTaskTest" name="UserTaskTest" isExecutable="true">
+    <startEvent id="StartEvent" name="Start"></startEvent>
+    <userTask id="UserTask" name="审批" activiti:assignee="王总"></userTask>
+    <endEvent id="EndEvent" name="End"></endEvent>
+    <sequenceFlow id="sid-FD651C62-73B3-47D9-8C0F-9F8210D9AEFA" sourceRef="StartEvent" targetRef="UserTask"></sequenceFlow>
+    <sequenceFlow id="sid-703BDB8A-7EA3-4AD1-9888-2F4AFFABE30F" sourceRef="UserTask" targetRef="EndEvent"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_UserTaskTest">
+    <bpmndi:BPMNPlane bpmnElement="UserTaskTest" id="BPMNPlane_UserTaskTest">
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="BPMNShape_StartEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="563.0" y="26.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="UserTask" id="BPMNShape_UserTask">
+        <omgdc:Bounds height="80.0" width="100.0" x="528.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="BPMNShape_EndEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="564.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-FD651C62-73B3-47D9-8C0F-9F8210D9AEFA" id="BPMNEdge_sid-FD651C62-73B3-47D9-8C0F-9F8210D9AEFA">
+        <omgdi:waypoint x="578.0" y="56.0"></omgdi:waypoint>
+        <omgdi:waypoint x="578.0" y="120.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="sid-703BDB8A-7EA3-4AD1-9888-2F4AFFABE30F" id="BPMNEdge_sid-703BDB8A-7EA3-4AD1-9888-2F4AFFABE30F">
+        <omgdi:waypoint x="578.0" y="200.0"></omgdi:waypoint>
+        <omgdi:waypoint x="578.0" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>ds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="UserTask" id="BPMNShape_UserTask">
+        <omgdc:Bounds height="80.0" width="100.0" x="528.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="BPMNShape_EndEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="564.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="sid-FD651C62-73B3-47D9-8C0F-9F8210D9AEFA" id="BPMNEdge_sid-FD651C62-73B3-47D9-8C0F-9F8210D9AEFA">
+        <omgdi:waypoint x="578.0" y="56.0"></omgdi:waypoint>
+        <omgdi:waypoint x="578.0" y="120.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+   
