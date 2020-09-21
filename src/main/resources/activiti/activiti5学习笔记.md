@@ -1624,139 +1624,73 @@ public void testCompleted() {
 
 在任务创建后，意味着**流程会进入等待状态**，直到引擎接收了一个**特定的消息**，这会触发流程穿过接收任务继续执行。
 
-### **15.1\**：流程图\****
+ReceiceTask任务，机器自动完成的任务，只会在act_ru_execution表中产生一条数据。
 
-![img](https://img-blog.csdn.net/20170303183834193)
+### 14.1、流程图
 
+![img](../static/接受活动测试.receiveTask.png)
 
+```xml
+  <process id="receiveTask" name="接受活动" isExecutable="true">
+    <startEvent id="StartEvent" name="Start"></startEvent>
+    <receiveTask id="receiveTask1" name="汇总当天销售额"></receiveTask>
+    <receiveTask id="receiveTask2" name="向老板发送短信"></receiveTask>
+    <endEvent id="EndEvent" name="End"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="StartEvent" targetRef="receiveTask1"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="receiveTask1" targetRef="receiveTask2"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="receiveTask2" targetRef="EndEvent"></sequenceFlow>
+  </process>
+```
 
-### **15.2\**：部署流程定义\**\**+\**\**启动流程实例\****
+### 14.2、部署流程定义+启动流程实例
 
-
-
-/**
-
- \* ReceiceTask任务，机器自动完成的任务
-
- \* 只会在act_ru_execution表中产生一条数据
-
- \* **@throws** Exception
-
- */
-
-
+```java
+@Test
+public void testStartProcess() {
+    ProcessInstance processInstance = processEngine.getRuntimeService()
+            .startProcessInstanceByKey("receiveTask");
+    System.err.println(processInstance.getId());
+}
 
 @Test
-
-**public void** testExecution()**throws** Exception {
-
-**// 1发布流程**
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("receiveTask.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("receiveTask.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("receiveTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("receiveTask.png", inputStreamPng)//
-
-.deploy();
+public void testReceiveTask() {
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    String pid = "172501";
+    Execution execution = runtimeService
+            .createExecutionQuery()
+            .processInstanceId(pid)
+            .singleResult();
+    System.err.println(execution.getId());
+    System.err.println(execution.getActivityId());
 
 
+    Map<String, Object> var1 = new HashMap<>();
+    var1.put("money", 10000);
+    runtimeService.signal(execution.getId(), var1);
+    System.err.println("当天销售额汇总完成");
 
-**// 2启动流程**
+    Execution execution1 = runtimeService.createExecutionQuery()
+            .processInstanceId(pid)
+            .singleResult();
+    System.err.println(execution1.getId());
+    System.err.println(execution1.getActivityId());
 
-ProcessInstance pi = processEngine.getRuntimeService()//
+    Integer money = (Integer) runtimeService.getVariable(execution1.getId(), "money");
+    System.err.println("老板，今天赚了" + money);
 
-.startProcessInstanceByKey("receiveTaskDemo");
+    Map<String, Object> var2 = new HashMap<>();
+    var2.put("Text Boss", true);
+    runtimeService.signal(execution1.getId(), var2);
+    System.err.println("向老板发送短信完成");
 
-System.*out*.println("pid:" + pi.getId());
-
-String pid = pi.getId();
-
-
-
-**// 3查询是否有一个执行对象在描述”汇总当日销售额“**
-
-Execution e1 = processEngine.getRuntimeService()//
-
-.createExecutionQuery()//
-
-.processInstanceId(pid)//
-
-.activityId("汇总当日销售额")//
-
-.singleResult();
-
- 
-
-**// 4执行一堆逻辑，并设置流程变量**
-
-Map<String,Object> vars = **new** HashMap<String, Object>();
-
-vars.put("当日销售额", 10000);
-
-**// 5流程向后执行一步：往后推移e1,使用signal给流程引擎信号，告诉他当前任务已经完成了，可以往后执行**
-
-processEngine.getRuntimeService()
-
-.signal(e1.getId(),vars);
-
-
-
-**// 6判断当前流程是否在”给老板发短信“节点**
-
-Execution e2 = processEngine.getRuntimeService()//
-
-.createExecutionQuery()//
-
-.processInstanceId(pid)//
-
-.activityId("给总经理发短信")//
-
-.singleResult();
-
-
-
-**// 7获取流程变量**
-
-Integer money = (Integer) processEngine.getRuntimeService()//
-
-.getVariable(e2.getId(), "当日销售额");
-
-System.*out*.println("老板，今天赚了" +money);
-
-**// 8向后执行一步：任务完成，往后推移”给老板发短信“任务**
-
-processEngine.getRuntimeService()//
-
-.signal(e2.getId());
-
-
-
-
-
-**// 9查询流程状态**
-
-  pi = processEngine.getRuntimeService()//
-
-   .createProcessInstanceQuery()//
-
-   .processInstanceId(pid)//
-
-   .singleResult();
-
-  **if**(pi==**null**){
-
-​     System.*out*.println("流程正常执行！！！，已经结束了");
-
-  }
-
+    ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+            .processInstanceId(pid)
+            .singleResult();
+    if (processInstance == null) {
+        System.err.println("流程正常结束");
+    }
 }
+```
 
 说明：
 

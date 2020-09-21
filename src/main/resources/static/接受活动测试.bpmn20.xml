@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/processdef">
+  <process id="receiveTask" name="接受活动" isExecutable="true">
+    <startEvent id="StartEvent" name="Start"></startEvent>
+    <receiveTask id="receiveTask1" name="汇总当天销售额"></receiveTask>
+    <receiveTask id="receiveTask2" name="向老板发送短信"></receiveTask>
+    <endEvent id="EndEvent" name="End"></endEvent>
+    <sequenceFlow id="flow1" sourceRef="StartEvent" targetRef="receiveTask1"></sequenceFlow>
+    <sequenceFlow id="flow2" sourceRef="receiveTask1" targetRef="receiveTask2"></sequenceFlow>
+    <sequenceFlow id="flow3" sourceRef="receiveTask2" targetRef="EndEvent"></sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_receiveTask">
+    <bpmndi:BPMNPlane bpmnElement="receiveTask" id="BPMNPlane_receiveTask">
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="BPMNShape_StartEvent">
+        <omgdc:Bounds height="30.0" width="30.0" x="455.0" y="30.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="receiveTask1" id="BPMNShape_receiveTask1">
+        <omgdc:Bounds height="80.0" width="100.0" x="420.0" y="120.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="receiveTask2" id="BPMNShape_receiveTask2">
+        <omgdc:Bounds height="80.0" width="100.0" x="420.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="BPMNShape_EndEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="456.0" y="435.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+        <omgdi:waypoint x="470.0" y="60.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="120.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+        <omgdi:waypoint x="470.0" y="200.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="270.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+        <omgdi:waypoint x="470.0" y="350.0"></omgdi:waypoint>
+        <omgdi:waypoint x="470.0" y="435.0"></omgdi:waypoint>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>id="BPMNShape_receiveTask2">
+        <omgdc:Bounds height="80.0" width="100.0" x="420.0" y="270.0"></omgdc:Bounds>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="BPMNShape_EndEvent">
+        <omgdc:Bounds height="28.0" width="28.0" x="456.0" y="435.0"></omgdc:Bounds>
+     

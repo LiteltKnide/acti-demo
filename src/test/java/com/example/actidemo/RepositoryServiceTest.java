@@ -72,7 +72,7 @@ public class RepositoryServiceTest {
 
     @Test
     public void testViewImage() throws Exception {
-        String deploymentId = "135001";
+        String deploymentId = "170004";
         ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
         List<String> resourceNames = processEngine.getRepositoryService()
                 .getDeploymentResourceNames(deploymentId);
