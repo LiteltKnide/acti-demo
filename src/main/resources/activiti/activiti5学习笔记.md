@@ -1,4 +1,4 @@
-# activiti5学习笔记
+activiti5学习笔记
 
 ## 1、工作流
 
@@ -1880,308 +1880,102 @@ public void testUserTask3() {
 
 ​              .setAssignee(taskId, userId);
 
-### **16.2\**：组任务\****
+### 15.2、组任务
 
-#### **16.2.1\**：流程图\****
+#### 15.2.1、流程图
 
-**![img](https://img-blog.csdn.net/20170303184546814)
-**
+![img](../static/UserTaskTest1.UserTaskTest.png)
 
-
-
-#### **16.2.2:\**：分配组任务方式一（直接指定办理人）\****
+#### 15.2.2、分配组任务方式一（直接指定办理人）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184627471)
-
-
+```xml
+<userTask id="UserTask" name="审批" activiti:candidateUsers="王总,李总,张总"></userTask>
+```
 
 2：测试代码：
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-
-
-**//部署流程定义，启动流程实例**
+```java
+@Test
+public void testGroupTask1() {
+    // 流程启动
+    ProcessInstance userTaskTest1 = runtimeService
+            .startProcessInstanceByKey("GroupTaskTest");
+    System.err.println(userTaskTest1.getId());
+}
 
 @Test
+public void testUserTaskList() {
+    // 查看个人任务
+    String assignee = "王总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskAssignee(assignee)
+            .list();
 
-**public void** testTask()**throws** Exception {
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-**// 2启动流程**
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess");
-
-System.*out*.println("pid:" + pi.getId());
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+    });
 }
 
-
-
-**//3查询我的个人任务列表**
 
 @Test
+public void testGroupTaskList() {
+    // 查看组任务
+    String assignee = "张总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskCandidateUser(assignee)
+            .list();
 
-**public void** findMyTaskList(){
-
-String userId = "小A";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        **.taskAssignee(userId)//指定个人任务查询**
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("createTime="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+    });
 
 }
-
-}
-
-
-
-**//4查询组任务列表**
 
 @Test
-
-**public void** findGroupList(){
-
-String userId = "小A";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        **.taskCandidateUser(userId)//指定组任务查询**
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("createTime ="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-System.*out*.println("##################################");
-
-
+public void testGetGroupUser() {
+    String taskId = "200004";
+    List<IdentityLink> identityLinksForTask = taskService.getIdentityLinksForTask(taskId);
+    identityLinksForTask.forEach(identityLink -> {
+        System.err.println(identityLink.getGroupId());
+        System.err.println(identityLink.getUserId());
+    });
 
 }
-
-}
-
-
-
-**//5查询组任务成员列表**
 
 @Test
-
-**public void** findGroupUser(){
-
-String taskId = "3709";
-
-List<IdentityLink> list = processEngine.getTaskService()//
-
-​        .getIdentityLinksForTask(taskId);
-
-​     //List<IdentityLink> list = processEngine.getRuntimeService()//
-
-//.getIdentityLinksForProcessInstance(instanceId);
-
-for(IdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
+public void tsetCliamTask() {
+    // 认领任务
+    String taskId = "200004";
+    taskService.claim(taskId, "王总");
 }
-
-}
-
-
-
-**//6查询组任务成员历史列表**
 
 @Test
-
-**public void** findGroupHisUser(){
-
-String taskId = "3709";
-
-List<HistoricIdentityLink> list = processEngine.getHistoryService()//
-
-.getHistoricIdentityLinksForTask(taskId);
-
-​    //List<HistoricIdentityLink> list = processEngine.getHistoryService()//
-
-​     // .getHistoricIdentityLinksForProcessInstance(processInstanceId);
-
-**for**(HistoricIdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
+public void testBackGroupTask() {
+    // 回到组任务状态  assignee为null
+    taskService.setAssignee("200004", null);
 }
-
-}
-
-
-
-**//完成任务**
 
 @Test
-
-**public void** completeTask(){
-
-String taskId = "3709";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
+public void testAddOrDeleteCandidateUser() {
+    // 向组任务中添加成员
+    taskService.addCandidateUser("200004", "钱总");
+	// 从组任务中删除成员
+    taskService.deleteCandidateUser("200004", "王总");
 }
-
- 
-
-   **/\**将组任务分配给个人任务，拾取任务\*/**
-
-//由1个人去完成任务
 
 @Test
-
-**public void** claim(){
-
-//任务ID
-
-String taskId = "5908";
-
-//分配的办理人
-
-String userId = "小B";
-
-processEngine.getTaskService()//
-
-.claim(taskId, userId);
-
+public void testCompleted() {
+    taskService.complete("200004");
 }
-
-**/\**将个人任务回退到组任务（前提：之前组任务）\*/**
-
-@Test
-
-**public void** assignee(){
-
-//任务ID
-
-String taskId = "5508";
-
-processEngine.getTaskService()//
-
-.setAssignee(taskId, **null**);
-
-}
-
-
-
-**/\**向组任务中添加成员\*/**
-
-@Test
-
-**public void** addCadidateUser(){
-
-//任务ID
-
-String taskId = "5508";
-
-//添加的成员
-
-String userId = "小E";
-
-processEngine.getTaskService()//
-
-.addCandidateUser(taskId, userId);
-
-}
-
-
-
-**/\**从组任务中删除成员\*/**
-
-@Test
-
-**public void** deleteCadidateUser(){
-
-//任务ID
-
-String taskId = "5508";
-
-//添加的成员
-
-String userId = "小D";
-
-processEngine.getTaskService()//
-
-.deleteCandidateUser(taskId, userId);
-
-}
-
-
-
-
+```
 
 说明：
 
-1） 小A，小B，小C，小D是组任务的办理人
+1） 王总,李总,张总是组任务的办理人
 
 2） 但是这样分配组任务的办理人不够灵活，因为项目开发中任务的办理人不要放置XML文件中。
 
@@ -2197,537 +1991,82 @@ processEngine.getTaskService()//
 
 
 
-#### **16.2.3:\**：分配个人任务方式二（使用流程变量）\****
+#### 15.2.3、分配个人任务方式二（使用流程变量）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184752697)
-
-
+```xml
+<userTask id="UserTask" name="审批" activiti:candidateUsers="#{userIds}"></userTask>
+```
 
 2：测试代码
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-
-
-**//部署流程定义，启动流程实例**
-
+```java
+/**
+ * 流程启动时必须设置候选人, 其他同一
+ */
 @Test
-
-**public void** testTask()**throws** Exception {
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-**// 2启动流程**
-
-**//启动流程实例，同时设置流程变量，用来指定组任务的办理人**
-
-Map<String, Object> variables = **new** HashMap<String, Object>();
-
-variables.put("userIDs","大大,小小,中中");
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess",variables);
-
-System.*out*.println("pid:" + pi.getId());
-
+public void testGroupTask2() {
+    // 流程启动
+    Map<String, Object> var = new HashMap<>();
+    var.put("userIds", "王总,李总,张总");
+    ProcessInstance userTaskTest1 = runtimeService
+            .startProcessInstanceByKey("GroupTaskTest", var);
+    System.err.println(userTaskTest1.getId());
 }
-
-
-
-**//查询我的个人任务列表**
-
-@Test
-
-**public void** findMyTaskList(){
-
-String userId = "大大";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
-}
-
-}
-
-
-
-**//查询组任务列表**
-
-@Test
-
-**public void** findGroupList(){
-
-String userId = "大大";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskCandidateUser(userId)//指定组任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-System.*out*.println("##################################");
-
-
-
-}
-
-}
-
-
-
-**//查询组任务成员列表**
-
-@Test
-
-**public void** findGroupUser(){
-
-String taskId = "3709";
-
-List<IdentityLink> list = processEngine.getTaskService()//
-
-​        .getIdentityLinksForTask(taskId);
-
-**for**(IdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
-}
-
-}
-
-
-
-**//查询组任务成员历史列表**
-
-@Test
-
-**public void** findGroupHisUser(){
-
-String taskId = "3709";
-
-List<HistoricIdentityLink> list = processEngine.getHistoryService()//
-
-.getHistoricIdentityLinksForTask(taskId);
-
-**for**(HistoricIdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
-}
-
-}
-
-
-
-**//完成任务**
-
-@Test
-
-**public void** completeTask(){
-
-String taskId = "3709";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
-}
-
- 
-
-   **/\**将组任务分配给个人任务，拾取任务\*/**
-
-//由1个人去完成任务
-
-@Test
-
-**public void** claim(){
-
-//任务ID
-
-String taskId = "5908";
-
-//分配的办理人
-
-String userId = "小B";
-
-processEngine.getTaskService()//
-
-.claim(taskId, userId);
-
-}
-
- 
+```
 
 说明：
 
-1） 大大，中中，小小是组任务的办理人
+1） 王总,李总,张总是组任务的办理人
 
 2） 在开发中，可以在页面中指定下一个组任务的办理人，通过流程变量设置下一个任务的办理人
 
-#### 16.2.4:**：分配个人任务方式三（使用类）**
+#### 15.2.4、分配个人任务方式三（使用类）
 
 1：流程图中任务节点的配置
 
-![img](https://img-blog.csdn.net/20170303184847942)
-
-![img](https://img-blog.csdn.net/20170303184907130)
-
-此时流程图的XML文件，如图：
-
-![img](https://img-blog.csdn.net/20170303184924760)
+```xml
+<userTask id="UserTask" name="审批">
+  <extensionElements>
+    <activiti:taskListener event="create" class="com.example.actidemo.listener.GroupTask3Listener"></activiti:taskListener>
+  </extensionElements>
+</userTask>
+```
 
 2：TaskListenerImpl类，用来设置任务的办理人
 
-**public class** TaskListenerImpl**implements** TaskListener {
+```java
+package com.example.actidemo.listener;
 
- 
+import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.TaskListener;
 
-/**指定个人任务和组任务的办理人*/
+/**
+ * @author hujt49
+ * @Description
+ * @create 2020-09-21 11:18
+ */
+public class GroupTask3Listener implements TaskListener {
+    private static final long serialVersionUID = -4617807354339318473L;
 
-@Override
-
-**public void** notify(DelegateTask delegateTask) {
-
-String userId1 = "孙悟空";
-
-String userId2 = "猪八戒";
-
-//指定组任务
-
-delegateTask.addCandidateUser(userId1);
-
-delegateTask.addCandidateUser(userId2);
-
+    @Override
+    public void notify(DelegateTask delegateTask) {
+        delegateTask.addCandidateUser("王总");
+        delegateTask.addCandidateUser("李总");
+    }
 }
-
- 
-
-}
+```
 
 3：测试代码
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
-
-
-
-**//部署流程定义，启动流程实例**
-
-@Test
-
-**public void** testTask()**throws** Exception {
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-// 2 启动流程
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess");
-
-System.*out*.println("pid:" + pi.getId());
-
-}
-
-
-
-**//查询我的个人任务列表**
-
-@Test
-
-**public void** findMyTaskList(){
-
-String userId = "孙悟空";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
-}
-
-}
-
-
-
-**//查询组任务列表**
-
-@Test
-
-**public void** findGroupList(){
-
-String userId = "孙悟空";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskCandidateUser(userId)//指定组任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-System.*out*.println("##################################");
-
-
-
-}
-
-}
-
-
-
-**//查询组任务成员列表**
-
-@Test
-
-**public void** findGroupUser(){
-
-String taskId = "4008";
-
-List<IdentityLink> list = processEngine.getTaskService()//
-
-​        .getIdentityLinksForTask(taskId);
-
-**for**(IdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
-}
-
-}
-
-
-
-**//查询组任务成员历史列表**
-
-@Test
-
-**public void** findGroupHisUser(){
-
-String taskId = "4008";
-
-List<HistoricIdentityLink> list = processEngine.getHistoryService()//
-
-.getHistoricIdentityLinksForTask(taskId);
-
-**for**(HistoricIdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
-
-}
-
-}
-
-
-
-**//完成任务**
-
-@Test
-
-**public void** completeTask(){
-
-String taskId = "4008";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
-}
-
-
-
-**//将组任务分配给个人任务（认领任务）**
-
-@Test
-
-**public void** claimTask(){
-
-String taskId = "4008";
-
-//个人任务的办理人
-
-String userId = "如来";
-
-processEngine.getTaskService().claim(taskId, userId);
-
-}
-
- 
-
-**//可以分配个人任务回退到组任务，（前提之前是个组任务）**
-
-@Test
-
-**public void** setAssigneeTask(){
-
-//任务ID
-
-String taskId = "4008";
-
-processEngine.getTaskService()//
-
-.setAssignee(taskId, **null**);
-
-}
-
-
-
-**//向组任务中添加成员**
-
-@Test
-
-**public void** addUser(){
-
-String taskId = "4008";
-
-String userId = "沙和尚";
-
-processEngine.getTaskService().addCandidateUser(taskId, userId);
-
-}
-
- 
-
-**//向组任务中删除成员**
-
-@Test
-
-**public void** removeUser(){
-
-String taskId = "4008";
-
-String userId = "沙和尚";
-
-processEngine.getTaskService().deleteCandidateUser(taskId, userId);
-
-}
+代码同一。
 
 说明：
 
-1） 在类中使用delegateTask.addCandidateUser (userId);的方式分配组任务的办理人，此时孙悟空和猪八戒是下一个任务的办理人。
+1） 在类中使用delegateTask.addCandidateUser (userId)的方式分配组任务的办理人，此时王总和李总是下一个任务的办理人。
 
-2） 通过processEngine.getTaskService().claim (taskId, userId);将组任务分配给个人任务，也叫认领任务，即指定某个人去办理这个任务，此时由如来去办理任务。
+2） 通过processEngine.getTaskService().claim (taskId, userId)将组任务分配给个人任务，也叫认领任务，即指定某个人去办理这个任务。
 
 **注意：认领任务的时候，可以是组任务成员中的人，也可以不是组任务成员的人，此时通过Type的类型为participant来指定任务的办理人**
 
@@ -2735,7 +2074,7 @@ processEngine.getTaskService().deleteCandidateUser(taskId, userId);
 
 4） 在开发中，可以将每一个任务的办理人规定好，例如张三的领导是李四和王五，这样张三提交任务，由李四或者王五去查询组任务，可以看到对应张三的申请，李四或王五再通过认领任务（claim）的方式，由某个人去完成这个任务。
 
-#### 16.2.5**：总结**
+#### 15.2.5、总结
 
 组任务及三种分配方式：
 
@@ -2803,240 +2142,127 @@ act_hi_identitylink表存放任务的办理人，包括个人任务和组任务�
 
  
 
-### **16.3:\**工作流定义的角色组（了解）\****
+### 15.3、工作流定义的角色组（了解）
 
-#### **16.3.1\**：流程图\****
-
-![img](https://img-blog.csdn.net/20170303185113838)
-
-
+#### 15.3.1、流程图
 
 流程图中任务节点的配置：
 
-![img](https://img-blog.csdn.net/20170303185135774)
+```xml
+<userTask id="UserTask" name="审批" activiti:candidateGroups="部门经理"></userTask>
+```
 
 分配任务负责的组
 
 使用 **candidate groups** 属性指定 任务负责组
 
-代码： 
-
-<userTask id=“usertask1” name=“审批” **activiti:candidateGroups=“部门经理”**>
-
-</userTask>   
-
- 
-
 其中部门经理表示一个用户组的角色
 
-#### **16.3.2\**：测试代码\****
+#### 15.3.2、测试代码
 
-ProcessEngine processEngine = ProcessEngines.*getDefaultProcessEngine*();
+```java
+@Test
+public void testSetGroupIdentity() {
+    // 在部署流程定义和启动流程实例的中间，设置组任务的办理人，向Activity表中存放组和用户的信息
+    identityService.saveGroup(new GroupEntity("部门经理"));
+    identityService.saveGroup(new GroupEntity("总经理"));
+    identityService.saveUser(new UserEntity("胡总"));
+    identityService.saveUser(new UserEntity("谢总"));
+    identityService.saveUser(new UserEntity("马总"));
+    identityService.createMembership("胡总", "部门经理");
+    identityService.createMembership("谢总", "部门经理");
+    identityService.createMembership("马总", "总经理");
+}
 
-
-
-//部署流程定义，启动流程实例
 
 @Test
-
-**public void** testTask()**throws** Exception {
-
-// 1 发布流程
-
-InputStream inputStreamBpmn = **this**.getClass().getResourceAsStream("taskProcess.bpmn");
-
-InputStream inputStreamPng = **this**.getClass().getResourceAsStream("taskProcess.png");
-
-processEngine.getRepositoryService()//
-
-.createDeployment()//
-
-.addInputStream("userTask.bpmn", inputStreamBpmn)//
-
-.addInputStream("userTask.png", inputStreamPng)//
-
-.deploy();
-
-
-
-/**在部署流程定义和启动流程实例的中间，设置组任务的办理人，向Activity表中存放组和用户的信息*/
-
-**IdentityService identityService = processEngine.getIdentityService();//认证：保存组和用户信息**
-
-**identityService.saveGroup(new GroupEntity("部门经理"));//建立组**
-
-**identityService.saveGroup(new GroupEntity("总经理"));//建立组**
-
-**identityService.saveUser(new UserEntity("小张"));**
-
-**identityService.saveUser(new UserEntity("小李"));**
-
-**identityService.saveUser(new UserEntity("小王"));**
-
-**identityService.createMembership("小张", "部门经理");//建立组和用户关系**
-
-**identityService.createMembership("小李", "部门经理");//建立组和用户关系**
-
-**identityService.createMembership("小王", "总经理");//建立组和用户关系**
-
- 
-
-
-
-// 2 启动流程
-
-ProcessInstance pi = processEngine.getRuntimeService()//
-
-.startProcessInstanceByKey("taskProcess");
-
-System.*out*.println("pid:" + pi.getId());
-
+public void testGroupTask3() {
+    // 流程启动
+    ProcessInstance userTaskTest1 = runtimeService
+            .startProcessInstanceByKey("GroupTaskTest");
+    System.err.println(userTaskTest1.getId());
 }
-
-
-
-//查询我的个人任务列表
 
 @Test
+public void testUserTaskList() {
+    // 查看个人任务
+    String assignee = "胡总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskAssignee(assignee)
+            .list();
 
-**public void** findMyTaskList(){
-
-String userId = "唐僧";
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskAssignee(userId)//指定个人任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+    });
 }
 
-}
-
-
-
-//查询组任务列表
 
 @Test
+public void testGroupTaskList() {
+    // 查看组任务  胡总和谢总是部门经理，能查询到任务  而马总是总经理，查询不到任务
+    String assignee = "胡总";
+    List<Task> taskList = taskService
+            .createTaskQuery()
+            .taskCandidateUser(assignee)
+            .list();
 
-**public void** findGroupList(){
-
-String userId = "小李";//小张，小李可以查询结果，小王不可以，因为他不是部门经理
-
-List<Task> list = processEngine.getTaskService()//
-
-​        .createTaskQuery()//
-
-​        .taskCandidateUser(userId)//指定组任务查询
-
-​        .list();
-
-**for**(Task task:list ){
-
-System.*out*.println("id="+task.getId());
-
-System.*out*.println("name="+task.getName());
-
-System.*out*.println("assinee="+task.getAssignee());
-
-System.*out*.println("assinee="+task.getCreateTime());
-
-System.*out*.println("executionId="+task.getExecutionId());
-
-System.*out*.println("##################################");
-
-
+    taskList.forEach(task -> {
+        System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+    });
 
 }
-
-}
-
-
-
-//查询组任务成员列表
 
 @Test
-
-**public void** findGroupUser(){
-
-String taskId = "4408";
-
-List<IdentityLink> list = processEngine.getTaskService()//
-
-​        .getIdentityLinksForTask(taskId);
-
-**for**(IdentityLink identityLink:list ){
-
-System.*out*.println("userId="+identityLink.getUserId());
-
-System.*out*.println("taskId="+identityLink.getTaskId());
-
-System.*out*.println("piId="+identityLink.getProcessInstanceId());
-
-System.*out*.println("######################");
+public void testGetGroupUser() {
+    String taskId = "225004";
+    List<IdentityLink> identityLinksForTask = taskService.getIdentityLinksForTask(taskId);
+    identityLinksForTask.forEach(identityLink -> {
+        System.err.println(identityLink.getGroupId());
+        System.err.println(identityLink.getUserId());
+    });
 
 }
-
-}
-
-
-
-//完成任务
 
 @Test
-
-**public void** completeTask(){
-
-String taskId = "5108";
-
-processEngine.getTaskService()//
-
-.complete(taskId);//
-
-System.*out*.println("完成任务");
-
+public void tsetCliamTask() {
+    // 认领任务
+    String taskId = "225004";
+    taskService.claim(taskId, "胡总");
 }
 
+@Test
+public void testBackGroupTask() {
+    // 回到组任务状态  assignee为null
+    taskService.setAssignee("225004", null);
 }
 
-#### **16.3.3\**：分配任务负责的组\**\**(IdentityService)\****
+@Test
+public void testAddOrDeleteCandidateUser() {
+    taskService.addCandidateUser("225004", "钱总");
 
-/**在部署流程定义和启动流程实例的中间，设置组任务的办理人，向Activiti表中存放组和用户的信息*/
+    taskService.deleteCandidateUser("225004", "王总");
+}
 
-IdentityService identityService = processEngine.getIdentityService();//认证：保存组和用户信息
+@Test
+public void testCompleted() {
+    taskService.complete("225004");
+}
+```
 
-identityService.saveGroup(**new** GroupEntity("部门经理"));//建立组
+#### 15.3.3、分配任务负责的组(IdentityService)
 
-identityService.saveGroup(**new** GroupEntity("总经理"));//建立组
-
-identityService.saveUser(**new** UserEntity(“小张”));//建立用户
-
-identityService.saveUser(**new** UserEntity("小李")); //建立用户
-
-identityService.saveUser(**new** UserEntity("小王")); //建立用户
-
-identityService.createMembership("小张", "部门经理");//建立组和用户关系
-
-identityService.createMembership("小李", "部门经理");//建立组和用户关系
-
-identityService.createMembership(“小王”, “总经理”);//建立组和用户关系
-
+```java
+// 在部署流程定义和启动流程实例的中间，设置组任务的办理人，向Activity表中存放组和用户的信息
+identityService.saveGroup(new GroupEntity("部门经理"));
+identityService.saveGroup(new GroupEntity("总经理"));
+identityService.saveUser(new UserEntity("胡总"));
+identityService.saveUser(new UserEntity("谢总"));
+identityService.saveUser(new UserEntity("马总"));
+identityService.createMembership("胡总", "部门经理");
+identityService.createMembership("谢总", "部门经理");
+identityService.createMembership("马总", "总经理");
+```
 表结构介绍
 
 **act_id_group：角色组表**
@@ -3047,15 +2273,17 @@ identityService.createMembership(“小王”, “总经理”);//建立组和�
 
 指定组任务的办理人，查询组任务
 
-String userId = “小张”;//小张，小李可以查询结果，小王不可以，因为他不是部门经理角色
+```java
+// 查看组任务  胡总和谢总是部门经理，能查询到任务  而马总是总经理，查询不到任务
+String assignee = "胡总";
+List<Task> taskList = taskService
+        .createTaskQuery()
+        .taskCandidateUser(assignee)
+        .list();
 
-List<Task> list = processEngine.getTaskService()//
+taskList.forEach(task -> {
+    System.err.println("任务" + task.getId() + "执行人:" + task.getAssignee());
+});
+```
 
-​        .createTaskQuery()//
-
-​        .taskCandidateUser(userId)//指定组任务查询
-
-​        .list();
-
-Activiti总结：
 
