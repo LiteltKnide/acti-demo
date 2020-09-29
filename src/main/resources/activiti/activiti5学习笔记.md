@@ -270,6 +270,14 @@ IDEA的activiti插件安装网上有很多教程，这里就简单截几张图
 
 ![导出png文件](../activiti/导出png文件.png)
 
+bpmn转xml时中文乱码解决：
+
+找到IDEA安装目录中bin目录下的这两个文件，在里面都加上`-Dfile.encoding=UTF-8`
+
+![](..\activiti\微信截图_20200929112328.png)
+
+![](..\activiti\微信截图_20200929112443.png)
+
 ## 4、核心API
 
 ### 4.1、ProcessEngine
@@ -313,7 +321,8 @@ TaskService taskService = processEngine.getTaskService();
 | **HistoryService**    | **历史管理(执行完的数据的管理)**                 |
 | **IdentityService**   | **组织机构管理**                                 |
 | FormService           | 一个可选服务，任务表单管理                       |
-| ManagerService        |                                                  |
+| ManagementService     | Job任务管理                                      |
+| DynamicBpmnService    | 直接操作流程定义，而不需要读取模型，再设计部署   |
 
 ### 4.2、RepositoryService
 
